@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Booking;
 use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -81,7 +80,8 @@ class ReviewForm extends Component
         $photosPaths = [];
         if (!empty($this->photos)) {
             foreach ($this->photos as $photo) {
-                $path = $photo->store('reviews', 'public');
+                $fileName = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
+                $path = $photo->storeAs('assets/img/reviews', $fileName, 'public');
                 $photosPaths[] = $path;
             }
         }
@@ -90,6 +90,16 @@ class ReviewForm extends Component
         $staffId = $this->booking->staffAssignments->first()?->staff_id;
 
         if ($this->existingReview) {
+            // Delete old photos if new photos are uploaded
+            if (!empty($photosPaths) && !empty($this->existingReview->photos)) {
+                foreach ($this->existingReview->photos as $oldPhoto) {
+                    $oldPhotoPath = public_path($oldPhoto);
+                    if (file_exists($oldPhotoPath)) {
+                        unlink($oldPhotoPath);
+                    }
+                }
+            }
+
             // Update existing review
             $this->existingReview->update([
                 'rating' => $this->rating,

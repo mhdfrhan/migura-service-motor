@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentProof extends Model
 {
@@ -57,7 +56,7 @@ class PaymentProof extends Model
 
     public function getProofImageUrlAttribute(): string
     {
-        return $this->proof_image_path ? Storage::url($this->proof_image_path) : '';
+        return $this->proof_image_path ? asset($this->proof_image_path) : '';
     }
 
     public function isPending(): bool

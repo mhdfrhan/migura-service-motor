@@ -216,7 +216,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     @if ($user->avatar)
-                                        <img src="{{ Storage::url($user->avatar) }}" alt="{{ $user->name }}"
+                                        <img src="{{ asset($user->avatar) }}" alt="{{ $user->name }}"
                                             class="w-10 h-10 rounded-lg object-cover">
                                     @else
                                         <div
@@ -374,7 +374,7 @@
                 <div class="flex items-start justify-between mb-6">
                     <div class="flex items-center gap-4">
                         @if ($selectedUser->avatar)
-                            <img src="{{ Storage::url($selectedUser->avatar) }}" alt="{{ $selectedUser->name }}"
+                            <img src="{{ asset($selectedUser->avatar) }}" alt="{{ $selectedUser->name }}"
                                 class="w-16 h-16 rounded-xl object-cover">
                         @else
                             <div

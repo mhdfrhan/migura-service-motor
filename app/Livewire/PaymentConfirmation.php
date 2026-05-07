@@ -6,7 +6,6 @@ use App\Models\Booking;
 use App\Models\PaymentMethod;
 use App\Models\PaymentProof;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -163,7 +162,8 @@ class PaymentConfirmation extends Component
 
         try {
             // Upload proof
-            $path = $this->paymentProof->store('payment-proofs', 'public');
+            $fileName = time() . '_' . uniqid() . '.' . $this->paymentProof->getClientOriginalExtension();
+            $path = $this->paymentProof->storeAs('assets/img/payment-proofs', $fileName, 'public');
 
             // Map payment method to database value
             $dbPaymentMethod = match ($this->paymentMethod) {

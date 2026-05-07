@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -71,13 +70,16 @@ class EditProfile extends Component
 		// Handle avatar upload
 		if ($this->avatar) {
 			// Delete old avatar if exists
-			if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-				Storage::disk('public')->delete($user->avatar);
+			if ($user->avatar) {
+				$oldAvatarPath = public_path($user->avatar);
+				if (file_exists($oldAvatarPath)) {
+					unlink($oldAvatarPath);
+				}
 			}
 
 			// Store new avatar
-			$avatarPath = $this->avatar->store('avatars', 'public');
-			$user->avatar = $avatarPath;
+			$fileName = time() . '_' . uniqid() . '.' . $this->avatar->getClientOriginalExtension();
+			$user->avatar = $this->avatar->storeAs('assets/img/avatars', $fileName, 'public');
 		}
 
 		// Update user details
@@ -111,7 +113,7 @@ class EditProfile extends Component
 		}
 
 		if ($this->currentAvatar) {
-			return Storage::url($this->currentAvatar);
+			return asset($this->currentAvatar);
 		}
 
 		// Default avatar

@@ -71,7 +71,7 @@
             <div class="p-4 border-t border-gray-200">
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     @if(auth()->user()->avatar)
-                        <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-lg object-cover">
+                        <img src="{{ asset(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-lg object-cover">
                     @else
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-bold">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}

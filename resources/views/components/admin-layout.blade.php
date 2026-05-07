@@ -12,6 +12,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('scripts')
     @livewireStyles
 </head>
 
@@ -165,7 +166,7 @@
             <div class="p-4 border-t border-gray-200">
                 <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     @if (auth()->user()->avatar)
-                        <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
+                        <img src="{{ asset(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}"
                             class="w-10 h-10 rounded-lg object-cover">
                     @else
                         <div

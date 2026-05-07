@@ -152,7 +152,7 @@
                         @if($review->photos && count($review->photos) > 0)
                             <div class="flex gap-2 mb-3">
                                 @foreach($review->photos as $photo)
-                                    <img src="{{ Storage::url($photo) }}" alt="Review Photo" class="w-24 h-24 object-cover rounded-xl border-2 border-gray-200">
+                                    <img src="{{ asset($photo) }}" alt="Review Photo" class="w-24 h-24 object-cover rounded-xl border-2 border-gray-200">
                                 @endforeach
                             </div>
                         @endif

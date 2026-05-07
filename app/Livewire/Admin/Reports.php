@@ -8,10 +8,13 @@ use App\Models\PaymentProof;
 use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Reports extends Component
 {
+    use WithPagination;
+
     public $dateRange = 'month';
 
     public $startDate;
@@ -45,6 +48,7 @@ class Reports extends Component
             ],
             default => [],
         };
+        $this->resetPage();
     }
 
     public function render()
@@ -96,11 +100,11 @@ class Reports extends Component
             ->map(fn($group) => $group->count())
             ->toArray();
 
-        // Daily Revenue (last 30 days)
-        $dailyRevenue = Booking::whereBetween('created_at', [
-            now()->subDays(30)->startOfDay(),
-            now()->endOfDay(),
-        ])
+        // Daily Revenue (based on date range)
+        $daysDiff = Carbon::parse($this->startDate)->diffInDays(Carbon::parse($this->endDate));
+        $daysToShow = min($daysDiff + 1, 30);
+
+        $dailyRevenue = Booking::whereBetween('created_at', [$start, $end])
             ->where('status', 'completed')
             ->selectRaw('DATE(created_at) as date, SUM(total_price) as revenue')
             ->groupBy('date')
@@ -108,6 +112,36 @@ class Reports extends Component
             ->get()
             ->mapWithKeys(fn($item) => [$item->date => (float) $item->revenue])
             ->toArray();
+
+        // Daily Bookings Count (for trend chart)
+        $dailyBookings = Booking::whereBetween('created_at', [$start, $end])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->mapWithKeys(fn($item) => [$item->date => (int) $item->count])
+            ->toArray();
+
+        // Monthly Revenue (for comparison if date range is year)
+        $monthlyRevenue = [];
+        if ($this->dateRange === 'year') {
+            $monthlyRevenue = Booking::whereBetween('created_at', [$start, $end])
+                ->where('status', 'completed')
+                ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, SUM(total_price) as revenue')
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get()
+                ->mapWithKeys(fn($item) => [
+                    Carbon::createFromFormat('Y-m', $item->month)->format('M Y') => (float) $item->revenue
+                ])
+                ->toArray();
+        }
+
+        // Bookings Data for Table
+        $bookings = Booking::with(['user', 'servicePackage', 'engineCapacity'])
+            ->whereBetween('created_at', [$start, $end])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         return view('livewire.admin.reports', [
             'totalBookings' => $totalBookings,
@@ -122,12 +156,15 @@ class Reports extends Component
             'bookingsByStatus' => $bookingsByStatus,
             'bookingsByService' => $bookingsByService,
             'dailyRevenue' => $dailyRevenue,
+            'dailyBookings' => $dailyBookings,
+            'monthlyRevenue' => $monthlyRevenue,
+            'bookings' => $bookings,
         ]);
     }
 
     public function export()
     {
-        $filename = 'reports-'.$this->startDate.'-to-'.$this->endDate.'-'.now()->format('His').'.xlsx';
+        $filename = 'reports-' . $this->startDate . '-to-' . $this->endDate . '-' . now()->format('His') . '.xlsx';
 
         return Excel::download(new ReportsExport($this->startDate, $this->endDate), $filename);
     }
